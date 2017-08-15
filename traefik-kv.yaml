@@ -1,0 +1,48 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: kube-system
+  name: traefik
+  labels:
+    k8s-app: traefik-ingress-lb
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: '*.misas.io.,misas.io.'
+spec:
+  selector:
+    k8s-app: traefik-ingress-lb
+  ports:
+    - port: 80
+      name: http
+    - port: 443
+      name: https
+    - port: 8080
+      name: webui
+  type: LoadBalancer
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  namespace: kube-system
+  name: traefik-ingress-controller
+  labels:
+    k8s-app: traefik-ingress-lb
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        k8s-app: traefik-ingress-lb
+        name: traefik-ingress-lb
+    spec:
+      containers:
+        - image: containous/traefik:v1.3.5
+          name: traefik-ingress-lb
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+            - containerPort: 8080
+          args:
+            - --consul
+            - --consul.endpoint=traefik-consul:8500

@@ -1,0 +1,24 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: external-dns
+  namespace: kube-system
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: external-dns
+    spec:
+      containers:
+      - name: external-dns
+        image: registry.opensource.zalan.do/teapot/external-dns:v0.3.0
+        args:
+        - --source=service
+        - --source=ingress
+        - --domain-filter=waittimes.io # will make ExternalDNS see only the hosted zones matching provided domain, omit to process all available hosted zones
+        - --provider=aws
+        - --registry=txt
+        - --interval=0m15s
+        - --txt-owner-id=k8.waittimes.io.
